@@ -1,0 +1,12 @@
+yolov8-env/
+
+
+.DS_Store
+
+
+runs/
+
+
+Dataset/**/*.jpg
+Dataset/**/*.zip
+*.pt
