@@ -30,4 +30,4 @@ for split in splits:
     img_folder = os.path.join(base_path, split, 'images')
     label_folder = os.path.join(base_path, split, 'labels')
     convert_annotations(csv_file, img_folder, label_folder)
-    print(f"✅ Finished converting: {csv_file} → {label_folder}")
+    print(f"Finished converting: {csv_file} → {label_folder}")
