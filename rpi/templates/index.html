@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>Real-time Face Detection</title>
+	<style>
+		body {
+			background-colour: #f8f9fa;
+			font-family: Arial, sans-serif;
+			text-align: center;
+			padding: 30px;
+		}
+
+		h1 {
+			color: #333;
+		}
+
+		.video-box {
+			margin-top: 20px;
+			display: inline-block;
+			border-radius: 12px;
+			overflow: hidden'
+			box-shadow: 0 4px 16px rgba(0,0,0,0.2);
+		}
+
+		img {
+			width: 640px;
+			height: auto;
+			display: block;
+		}
+	</style>
+</head>
+<body>
+	<h1>Raspberry Pi Real-Time Face Detection</h1>
+	<div class="video-box">
+		<img src="{{ url_for('video_feed') }}" alt="Live Video Feed">
+	</div>
+</body>
+</html>
