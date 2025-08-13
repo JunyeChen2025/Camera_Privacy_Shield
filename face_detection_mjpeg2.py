@@ -7,6 +7,15 @@ from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
 import secrets
 import binascii
 
+import time, csv
+from pathlib import Path
+
+#Counter and Log
+LOG_LAT_CSV = Path("latency_log.csv")
+if not LOG_LAT_CSV.exists():
+   with open(LOG_LAT_CSV, "w", newline="") as f:
+       csv.writer(f).writerow(["ts_ms", "cap_to_det_ms", "det_to_jpeg_ms", "total_ms", "n_faces"])
+
 # Parameters
 WIDTH, HEIGHT = 480, 360         # Lower resolution to shorten queue
 MODEL_PATH = "best.pt"
@@ -122,6 +131,8 @@ def generate_frames():
                 time.sleep(0.005)
                 continue
 
+            t0 = time.perf_counter_ns() #Timing 0
+
             i += 1
 
             try:
@@ -145,18 +156,29 @@ def generate_frames():
                     cv2.putText(frame, "encrypted", (x1, max(0,y1-6)),
                                 cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255,0,0), 1, cv2.LINE_AA)
                 #annot = last_annot
+               t1 = time.perf_counter_ns() #Timing 1: Detection + Encryption completed
 
             except Exception as e:
                 print("Pipeline error:", e)
                 pass
 
             ok, jpeg = cv2.imencode(".jpg", frame, [cv2.IMWRITE_JPEG_QUALITY, JPEG_QUALITY])
+
+            t2 = time.perf_counter_ns()   #JPEG encode completed
+            cap_to_det = (t1 - t0) / 1e6
+            det_to_jpeg = (t2 - t1) / 1e6
+            total = (t2 - t0) / 1e6
+            with open(LOG_LAT_CSV, "a", newline="") as f:
+                csv.writer(f).writerow([int(time.time()*1000), f"{cap_to_det:.2f}", f"{det_to_jpeg:.2f}", f"{total:.2f}", len(boxes)])      #Counter log  completed
+
             if not ok:
                 continue
 
             data = jpeg.tobytes()
-            yield (b"--frame\r\n"
-                   b"Content-Type: image/jpeg\r\n\r\n" + jpeg.tobytes() + b"\r\n")
+
+            send_ts_ns = time.time_ns() #send moment
+            yield (b"--frame\r\n" + f"X-TS: {send_ts_ns}\r\n".encode()
+                   +b"Content-Type: image/jpeg\r\n\r\n" + jpeg.tobytes() + b"\r\n")
 
 @app.route("/")
 def index():
